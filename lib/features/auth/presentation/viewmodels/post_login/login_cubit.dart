@@ -7,6 +7,7 @@ class LoginCubit extends Cubit<LoginState> {
 
   LoginCubit(this.repository) : super(LoginInitial());
 
+  /// Log in the user and store access token in SecureStorage
   Future<void> login({
     required String username,
     required String password,
@@ -14,28 +15,18 @@ class LoginCubit extends Cubit<LoginState> {
     emit(LoginLoading());
 
     try {
-      final response = await repository.login(
-        username: username,
-        password: password,
-      );
 
-      if (response.containsKey('access') &&
-          response.containsKey('refresh') &&
-          response.containsKey('user')) {
-        emit(LoginSuccess(
-          accessToken: response['access'],
-          refreshToken: response['refresh'],
-          user: response['user'],
-        ));
-      } else {
-        emit(const LoginFailure('Invalid response from server'));
-      }
+      await repository.login(username: username, password: password);
+
+      emit(LoginSuccess());
     } catch (e) {
       emit(LoginFailure(e.toString()));
     }
   }
 
-  void logout() {
+  /// Log out user
+  Future<void> logout() async {
+    await repository.logout();
     emit(LoginInitial());
   }
 }
